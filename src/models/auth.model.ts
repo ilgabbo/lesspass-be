@@ -7,9 +7,10 @@ export const BaseAuthSchema = z.object({
     .string()
     .min(8, { message: 'Password must be at least 8 characters' })
     .max(20, { message: 'Password must be at most 20 characters' }),
+  key: z.string(),
 });
 
-export const SignupAuthSchema = BaseAuthSchema.extend({
+export const SignupAuthSchema = BaseAuthSchema.omit({ key: true }).extend({
   firstName: z
     .string({ message: 'First name required' })
     .min(2, { message: 'First name must be at least 2 characters' })
@@ -19,7 +20,6 @@ export const SignupAuthSchema = BaseAuthSchema.extend({
     .min(2, { message: 'Last name must be at least 2 characters' })
     .max(25, { message: 'Last name must be at most 25 characters' }),
   role: z.enum([UserRole.ADMIN, UserRole.USER]).optional(),
-  key: z.string(),
 });
 
 export type SignupModel = z.infer<typeof SignupAuthSchema>;

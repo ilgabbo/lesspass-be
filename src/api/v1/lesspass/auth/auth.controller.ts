@@ -57,6 +57,10 @@ export class AuthController {
       };
     }
 
+    await db.update(users).set({
+      publicKey: body.key
+    }).where(eq(users.email, email));
+
     const jose = await import('jose');
     const token = await new jose.SignJWT({
       userId: user[0].userId,
@@ -111,7 +115,7 @@ export class AuthController {
       }
 
       // first signup or an admin is creating a new user
-      const { firstName, lastName, email, password, role, key } = result.data;
+      const { firstName, lastName, email, password, role } = result.data;
       const user = await db.select().from(users).where(eq(users.email, email));
       if (user.length > 0) {
         return {
@@ -128,7 +132,6 @@ export class AuthController {
         email,
         password: hashedPassword,
         role: userCount > 0 ? (role ?? UserRole.USER) : UserRole.ADMIN,
-        publicKey: key
       });
 
       return {
