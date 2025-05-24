@@ -4,54 +4,66 @@
 import { HttpStatus, Injectable, NestMiddleware } from '@nestjs/common';
 import db from 'db';
 import { users } from 'db/schema';
-import { Endpoint } from 'enums/endpoint.enum';
-import env from 'env';
+import env from 'shared/env';
 import { NextFunction, Request, Response } from 'express';
-import { processEncryption } from 'lib/enc/processEncryption';
+import { processEncryption } from 'shared/lib/enc/processEncryption';
 import { eq } from 'drizzle-orm';
+import { noEncryptionEndpoints, noSecretEndpoints } from 'shared/config/config';
+import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
+import { JsonWebTokenError, JwtService, TokenExpiredError } from '@nestjs/jwt';
+import { TokenPayloadModel } from 'shared/models/token.model';
 
 @Injectable()
 export class E2EMiddleware implements NestMiddleware {
+  constructor(private readonly jwtService: JwtService) {}
   async use(req: Request, res: Response, next: NextFunction) {
+    // this endpoint doesn't need encryption
+    if (noEncryptionEndpoints.includes(req.originalUrl)) {
+      return next();
+    }
+
     let clientPublicKeyHex = '';
-    if (
-      req.originalUrl === `${Endpoint.GLOBAL}/auth/signin` ||
-      req.originalUrl === `${Endpoint.GLOBAL}/auth/signup`
-    ) {
+    if (noSecretEndpoints.includes(req.originalUrl)) {
       clientPublicKeyHex = req.body.key;
     } else {
       const token = req.headers.authorization?.split(' ')[1];
       if (!token) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
           status: HttpStatus.UNAUTHORIZED,
-          message: 'Unauthorized',
+          message: HttpStatusText.UNAUTHORIZED,
         });
       }
 
-      const jose = await import('jose');
       try {
-        const verifiedToken = await jose.jwtVerify(
-          token,
-          new TextEncoder().encode(env.JWT_SECRET),
-        );
+        const verifiedToken: TokenPayloadModel =
+          await this.jwtService.verifyAsync(token, {
+            secret: env.JWT_SECRET,
+          });
+
+        req['payload'] = verifiedToken;
 
         const user = await db
           .select({ publicKey: users.publicKey })
           .from(users)
-          .where(eq(users.userId, verifiedToken.payload.userId as string));
+          .where(eq(users.userId, verifiedToken.userId));
         clientPublicKeyHex = user[0].publicKey;
       } catch (error) {
         console.error(error);
-        if (error instanceof jose.errors.JOSEError) {
-          return res.status(HttpStatus.UNAUTHORIZED).json({
-            status: HttpStatus.UNAUTHORIZED,
-            message: 'Invalid token',
-          });
+
+        switch (error.constructor) {
+          case TokenExpiredError:
+          case JsonWebTokenError:
+            return res.status(HttpStatus.UNAUTHORIZED).json({
+              status: HttpStatus.UNAUTHORIZED,
+              message: HttpStatusText.UNAUTHORIZED,
+            });
+
+          default:
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+              status: HttpStatus.INTERNAL_SERVER_ERROR,
+              message: HttpStatusText.INTERNAL_SERVER_ERROR,
+            });
         }
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Internal Server Error',
-        });
       }
     }
 

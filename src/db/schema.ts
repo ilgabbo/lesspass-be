@@ -2,21 +2,24 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { relations } from 'drizzle-orm';
-import { boolean } from 'drizzle-orm/pg-core';
-import { primaryKey } from 'drizzle-orm/pg-core';
-import { timestamp } from 'drizzle-orm/pg-core';
-import { pgEnum, pgTable, uuid, varchar } from 'drizzle-orm/pg-core';
-import { FieldLength } from 'enums/fieldLength.enum';
-import { UserRole } from 'enums/role.enum';
+import {
+  pgEnum,
+  pgTable,
+  uuid,
+  varchar,
+  boolean,
+  primaryKey,
+  timestamp,
+} from 'drizzle-orm/pg-core';
+import { FieldLength } from 'shared/enums/fieldLength.enum';
+import { UserRole } from 'shared/enums/role.enum';
 
 export const userRole = pgEnum('role', [UserRole.ADMIN, UserRole.USER]);
 
 export const users = pgTable('users', {
   userId: uuid().primaryKey().defaultRandom().notNull(),
   createdAt: timestamp().defaultNow().notNull(),
-  modifiedAt: timestamp()
-    .$onUpdateFn(() => new Date())
-    .notNull(),
+  modifiedAt: timestamp().$onUpdateFn(() => new Date()),
   firstName: varchar({ length: FieldLength.FIRSTNAME_LENGTH }).notNull(),
   lastName: varchar({ length: FieldLength.LASTNAME_LENGTH }).notNull(),
   email: varchar({ length: FieldLength.EMAIL_LENGTH }).notNull(),
@@ -29,15 +32,13 @@ export const users = pgTable('users', {
 export const passwords = pgTable('passwords', {
   passwordId: uuid().primaryKey().defaultRandom().notNull(),
   createdAt: timestamp().defaultNow().notNull(),
-  modifiedAt: timestamp()
-    .$onUpdateFn(() => new Date())
-    .notNull(),
+  modifiedAt: timestamp().$onUpdateFn(() => new Date()),
   title: varchar({ length: FieldLength.TITLE_LENGTH }).notNull(),
   description: varchar({ length: FieldLength.DESCRIPTION_LENGTH }),
+  username: varchar({ length: FieldLength.EMAIL_LENGTH }).notNull(),
+  url: varchar({ length: FieldLength.URL_LENGTH }),
   password: varchar().notNull(),
-  folderId: uuid()
-    .notNull()
-    .references(() => folders.folderId),
+  folderId: uuid().references(() => folders.folderId),
   userId: uuid()
     .notNull()
     .references(() => users.userId),
@@ -46,30 +47,42 @@ export const passwords = pgTable('passwords', {
 export const folders = pgTable('folders', {
   folderId: uuid().primaryKey().defaultRandom().notNull(),
   createdAt: timestamp().defaultNow().notNull(),
-  modifiedAt: timestamp()
-    .$onUpdateFn(() => new Date())
-    .notNull(),
+  modifiedAt: timestamp().$onUpdateFn(() => new Date()),
   name: varchar({ length: FieldLength.TITLE_LENGTH }).notNull(),
-  parentId: uuid()
-    .notNull()
-    .references(() => folders.folderId),
-});
-
-export const tags = pgTable('tags', {
-  tagId: uuid().primaryKey().defaultRandom().notNull(),
-  createdAt: timestamp().defaultNow().notNull(),
-  modifiedAt: timestamp()
-    .$onUpdateFn(() => new Date())
-    .notNull(),
-  name: varchar().notNull(),
+  parentId: uuid().references(() => folders.folderId),
   userId: uuid()
     .notNull()
     .references(() => users.userId),
 });
 
+export const tags = pgTable('tags', {
+  tagId: uuid().primaryKey().defaultRandom().notNull(),
+  createdAt: timestamp().defaultNow().notNull(),
+  modifiedAt: timestamp().$onUpdateFn(() => new Date()),
+  name: varchar({ length: FieldLength.TITLE_LENGTH }).notNull(),
+  color: varchar().notNull(),
+  userId: uuid()
+    .notNull()
+    .references(() => users.userId),
+});
+
+export const tagsToPasswords = pgTable(
+  'tagsToPasswords',
+  {
+    tagId: uuid()
+      .notNull()
+      .references(() => tags.tagId),
+    passwordId: uuid()
+      .notNull()
+      .references(() => passwords.passwordId),
+  },
+  (t) => [primaryKey({ columns: [t.passwordId, t.tagId] })],
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
   tags: many(tags),
   passwords: many(passwords),
+  folders: many(folders),
 }));
 
 export const passwordsRelations = relations(passwords, ({ one, many }) => ({
@@ -96,6 +109,10 @@ export const foldersRelations = relations(folders, ({ one, many }) => ({
   children: many(folders, {
     relationName: 'parent',
   }),
+  user: one(users, {
+    fields: [folders.userId],
+    references: [users.userId],
+  }),
 }));
 
 export const tagsRelations = relations(tags, ({ one, many }) => ({
@@ -105,19 +122,6 @@ export const tagsRelations = relations(tags, ({ one, many }) => ({
   }),
   passwords: many(tagsToPasswords),
 }));
-
-export const tagsToPasswords = pgTable(
-  'tagsToPasswords',
-  {
-    tagId: uuid()
-      .notNull()
-      .references(() => tags.tagId),
-    passwordId: uuid()
-      .notNull()
-      .references(() => passwords.passwordId),
-  },
-  (t) => [primaryKey({ columns: [t.passwordId, t.tagId] })],
-);
 
 export const tagsToPasswordsRelations = relations(
   tagsToPasswords,

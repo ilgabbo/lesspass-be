@@ -8,15 +8,16 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { Endpoint } from 'enums/endpoint.enum';
 import { Request, Response } from 'express';
-import { ResponseModel } from 'models/response.model';
-import { processEncryption } from 'lib/enc/processEncryption';
+import { ResponseModel } from 'shared/models/response.model';
+import { processEncryption } from 'shared/lib/enc/processEncryption';
 import { map, Observable } from 'rxjs';
 import db from 'db';
 import { users } from 'db/schema';
 import { eq } from 'drizzle-orm';
 import { env } from 'process';
+import { noSecretEndpoints, noEncryptionEndpoints } from 'shared/config/config';
+import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
 
 @Injectable()
 export class E2EInterceptor implements NestInterceptor {
@@ -26,24 +27,24 @@ export class E2EInterceptor implements NestInterceptor {
   ): Observable<Promise<ResponseModel>> {
     return next.handle().pipe(
       map(async (json: ResponseModel) => {
+        const request = context.switchToHttp().getRequest<Request>();
         const response = context.switchToHttp().getResponse<Response>();
         response.status(json.status);
 
+        if (noEncryptionEndpoints.includes(request.originalUrl)) {
+          return json;
+        }
         if (json.data) {
-          const req = context.switchToHttp().getRequest<Request>();
           let clientPublicKeyHex = '';
-          if (
-            req.originalUrl === `${Endpoint.GLOBAL}/auth/signin` ||
-            req.originalUrl === `${Endpoint.GLOBAL}/auth/signup`
-          ) {
-            clientPublicKeyHex = req.body.key;
+          if (noSecretEndpoints.includes(request.originalUrl)) {
+            clientPublicKeyHex = request.body.key;
           } else {
-            const token = req.headers.authorization?.split(' ')[1];
+            const token = request.headers.authorization?.split(' ')[1];
             if (!token) {
               response.status(HttpStatus.UNAUTHORIZED);
               return {
                 status: HttpStatus.UNAUTHORIZED,
-                message: 'Invalid token',
+                message: HttpStatusText.UNAUTHORIZED,
               };
             }
 
@@ -67,13 +68,13 @@ export class E2EInterceptor implements NestInterceptor {
                 response.status(HttpStatus.UNAUTHORIZED);
                 return {
                   status: HttpStatus.UNAUTHORIZED,
-                  message: 'Invalid token',
+                  message: HttpStatusText.UNAUTHORIZED,
                 };
               }
               response.status(HttpStatus.INTERNAL_SERVER_ERROR);
               return {
                 status: HttpStatus.INTERNAL_SERVER_ERROR,
-                message: 'Internal Server Error',
+                message: HttpStatusText.INTERNAL_SERVER_ERROR,
               };
             }
           }
@@ -84,12 +85,11 @@ export class E2EInterceptor implements NestInterceptor {
             json.data,
           );
 
-          const res = {
+          return {
             status: json.status,
             message: json.message,
             data: encryptedData,
           };
-          return res;
         }
 
         return json;

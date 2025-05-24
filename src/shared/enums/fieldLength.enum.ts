@@ -5,4 +5,5 @@ export enum FieldLength {
   LASTNAME_LENGTH = 25,
   TITLE_LENGTH = 15,
   DESCRIPTION_LENGTH = 100,
+  URL_LENGTH = 2000,
 }

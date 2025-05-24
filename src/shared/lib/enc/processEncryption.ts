@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import env from 'env';
+import env from 'shared/env';
 import crypto from 'crypto';
 import { x25519 } from '@noble/curves/ed25519';
 
 export const processEncryption = (
-  clientKey: string,
+  clientPublicKey: string,
   mode: 'encrypt' | 'decrypt',
   data: object | string,
 ) => {
   const serverPrivateKeyHex = env.SERVER_PRIVATE_KEY;
   const sharedSecretUint8 = x25519.getSharedSecret(
     serverPrivateKeyHex,
-    clientKey,
+    clientPublicKey,
   );
 
   const sharedSecret = Buffer.from(sharedSecretUint8);
