@@ -1,12 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Endpoint } from './shared/enums/endpoint.enum';
 import env from 'shared/env';
 import { E2EInterceptor } from 'interceptor/e2e/e2e.interceptor';
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ValidationError } from 'class-validator';
 
 async function bootstrap() {
@@ -23,7 +24,7 @@ async function bootstrap() {
           errors: Object.values(err.constraints || {}),
         }));
         return new BadRequestException({
-          status: 400,
+          status: HttpStatus.BAD_REQUEST,
           message: 'Validation failed',
           data: messages,
         });

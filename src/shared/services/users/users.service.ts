@@ -29,6 +29,7 @@ export class UsersService {
         data: user as UserFromTable,
       };
     } catch (error) {
+      // TODO: error mapping
       console.error(error);
 
       return {

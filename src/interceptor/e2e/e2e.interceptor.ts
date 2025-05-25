@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
@@ -18,25 +17,40 @@ import { eq } from 'drizzle-orm';
 import { env } from 'process';
 import { noKeyEndpoints, noEncryptionEndpoints } from 'shared/config/config';
 import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
+import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
+import { TokenPayloadModel } from 'shared/models/token.model';
 
 @Injectable()
 export class E2EInterceptor implements NestInterceptor {
+  private readonly jwtService = new JwtService();
+
   intercept(
     context: ExecutionContext,
     next: CallHandler,
   ): Observable<Promise<ResponseModel>> {
     return next.handle().pipe(
-      map(async (json: ResponseModel) => {
+      map(async (res: ResponseModel) => {
         const request = context.switchToHttp().getRequest<Request>();
         const response = context.switchToHttp().getResponse<Response>();
-        response.status(json.status);
+        response.status(res.status);
 
         if (noEncryptionEndpoints.includes(request.originalUrl)) {
-          return json;
+          return res;
         }
-        if (json.data) {
+
+        if (res.data) {
           let clientPublicKeyHex = '';
+
+          // thinking of moving this logic into a service
           if (noKeyEndpoints.includes(request.originalUrl)) {
+            // TODO: custom message
+            if (!request.body.key) {
+              response.status(HttpStatus.BAD_REQUEST);
+              return {
+                status: HttpStatus.BAD_REQUEST,
+                message: HttpStatusText.BAD_REQUEST,
+              };
+            }
             clientPublicKeyHex = request.body.key;
           } else {
             const token = request.headers.authorization?.split(' ')[1];
@@ -48,23 +62,20 @@ export class E2EInterceptor implements NestInterceptor {
               };
             }
 
-            const jose = await import('jose');
             try {
-              const verifiedToken = await jose.jwtVerify(
-                token,
-                new TextEncoder().encode(env.JWT_SECRET),
-              );
+              const verifiedToken: TokenPayloadModel =
+                await this.jwtService.verifyAsync(token, {
+                  secret: env.JWT_SECRET,
+                });
 
               const user = await db
                 .select({ publicKey: users.publicKey })
                 .from(users)
-                .where(
-                  eq(users.userId, verifiedToken.payload.userId as string),
-                );
+                .where(eq(users.userId, verifiedToken.userId));
               clientPublicKeyHex = user[0].publicKey;
             } catch (error) {
               console.error(error);
-              if (error instanceof jose.errors.JOSEError) {
+              if (error instanceof JsonWebTokenError) {
                 response.status(HttpStatus.UNAUTHORIZED);
                 return {
                   status: HttpStatus.UNAUTHORIZED,
@@ -82,17 +93,17 @@ export class E2EInterceptor implements NestInterceptor {
           const encryptedData = processEncryption(
             clientPublicKeyHex,
             'encrypt',
-            json.data,
+            res.data,
           );
 
           return {
-            status: json.status,
-            message: json.message,
+            status: res.status,
+            message: res.message,
             data: encryptedData,
           };
         }
 
-        return json;
+        return res;
       }),
     );
   }

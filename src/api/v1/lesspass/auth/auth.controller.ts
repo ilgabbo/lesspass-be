@@ -1,7 +1,6 @@
-import { Body, Controller, Headers, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, Headers, Post } from '@nestjs/common';
 import { ResponseModel } from 'shared/models/response.model';
 import { Endpoint } from 'shared/enums/endpoint.enum';
-import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
 import { SigninDto, SignupDto } from 'shared/dto/auth.dto';
 import { AuthService } from 'shared/services/auth/auth.service';
 
@@ -25,19 +24,6 @@ export class AuthController {
     @Body() body: SignupDto,
     @Headers('Authorization') header: string | undefined,
   ): Promise<ResponseModel> {
-    try {
-      const result = await this.authService.signUp(
-        body,
-        header?.split(' ')?.[1],
-      );
-
-      return result;
-    } catch (error) {
-      console.error(error);
-      return {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: HttpStatusText.INTERNAL_SERVER_ERROR,
-      };
-    }
+    return await this.authService.signUp(body, header?.split(' ')?.[1]);
   }
 }

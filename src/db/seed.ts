@@ -1,14 +1,12 @@
-import db from './index'; // adatta al tuo file di connessione
-import { folders, passwords, tags, tagsToPasswords } from './schema'; // adatta al tuo file schema
+import db from './index';
+import { folders, passwords, tags, tagsToPasswords } from './schema';
 import { randomUUID } from 'crypto';
 
-// ID utente esistente
 const existingUserId = 'ea608887-df45-4869-a41c-143df4d4b030';
 
 async function seed() {
   console.log('Start seeding...');
 
-  // Create folders
   const rootFolderId = randomUUID();
   const childFolderId = randomUUID();
 
@@ -27,7 +25,6 @@ async function seed() {
   ]);
   console.log('Inserted folders');
 
-  // Create passwords
   const passwordId1 = randomUUID();
   const passwordId2 = randomUUID();
 
@@ -53,7 +50,6 @@ async function seed() {
   ]);
   console.log('Inserted passwords');
 
-  // Create tags
   const tagId1 = randomUUID();
   const tagId2 = randomUUID();
 
@@ -73,7 +69,6 @@ async function seed() {
   ]);
   console.log('Inserted tags');
 
-  // Link tags to passwords
   await db.insert(tagsToPasswords).values([
     {
       passwordId: passwordId1,

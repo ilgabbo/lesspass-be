@@ -17,21 +17,24 @@ import { TokenPayloadModel } from 'shared/models/token.model';
 export class E2EMiddleware implements NestMiddleware {
   constructor(private readonly jwtService: JwtService) {}
   async use(req: Request, res: Response, next: NextFunction) {
-    // this endpoint doesn't need encryption
+    // these endpoints don't need encryption
     if (noEncryptionEndpoints.includes(req.originalUrl)) {
       return next();
     }
 
     let clientPublicKeyHex = '';
     if (noKeyEndpoints.includes(req.originalUrl)) {
+      // TODO: custom message
+      if (!req.body.key) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          status: HttpStatus.BAD_REQUEST,
+          message: HttpStatusText.BAD_REQUEST,
+        });
+      }
       clientPublicKeyHex = req.body.key;
     } else {
-      // const userId = req['payload'].userId;
-      // clientPublicKeyHex = await db
-      //   .select({ publicKey: users.publicKey })
-      //   .from(users)
-      //   .where(eq(users.userId, userId))[0];
-      const token = req.headers.authorization?.split(' ')[1];
+      // TODO: move this logic into auth middleware
+      const token = req.headers.authorization?.split(' ')?.[1];
       if (!token) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
           status: HttpStatus.UNAUTHORIZED,
@@ -53,6 +56,7 @@ export class E2EMiddleware implements NestMiddleware {
           .where(eq(users.userId, verifiedToken.userId));
         clientPublicKeyHex = user[0].publicKey;
       } catch (error) {
+        // TODO: error mapping
         console.error(error);
 
         switch (error.constructor) {

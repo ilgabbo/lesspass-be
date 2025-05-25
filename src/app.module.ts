@@ -14,6 +14,7 @@ import { RequestContextService } from './shared/services/request-context/request
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
+    // TODO: implement auth middleware
     consumer.apply(E2EMiddleware).forRoutes('*');
   }
 }

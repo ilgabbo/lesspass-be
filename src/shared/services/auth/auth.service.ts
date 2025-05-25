@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { ServiceReturnValueModel } from 'shared/models/serviceReturnValue.model';
@@ -73,6 +71,7 @@ export class AuthService {
         },
       };
     } catch (error) {
+      // TODO: error mapping
       console.error(error);
 
       return {
@@ -82,6 +81,7 @@ export class AuthService {
     }
   }
 
+  // only admins can register new users
   async signUp(
     body: SignupDto,
     token: string | undefined,
@@ -90,6 +90,7 @@ export class AuthService {
       const userCount = await db.$count(users);
 
       if (userCount > 0) {
+        // jwt needed to check the role
         if (!token) {
           return {
             status: HttpStatus.UNAUTHORIZED,
@@ -131,6 +132,7 @@ export class AuthService {
         message: HttpStatusText.OK,
       };
     } catch (error) {
+      // TODO: error mapping
       console.error(error);
 
       if (error instanceof JsonWebTokenError) {

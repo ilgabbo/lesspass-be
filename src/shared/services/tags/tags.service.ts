@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, Scope } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import db from 'db';
 import { tags, users } from 'db/schema';
 import { and, eq, inArray } from 'drizzle-orm';
@@ -7,7 +7,7 @@ import { Tag } from 'shared/models/database.model';
 import { ServiceReturnValueModel } from 'shared/models/serviceReturnValue.model';
 import { RequestContextService } from '../request-context/request-context.service';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class TagsService {
   constructor(private readonly ctx: RequestContextService) {}
 
@@ -30,6 +30,7 @@ export class TagsService {
         data: tag,
       };
     } catch (error) {
+      // TODO: error mapping
       console.error(error);
 
       return {
@@ -57,6 +58,7 @@ export class TagsService {
         data: tagsResult,
       };
     } catch (error) {
+      // TODO: error mapping
       console.error(error);
 
       return {
@@ -89,6 +91,7 @@ export class TagsService {
         message: HttpStatusText.OK,
       };
     } catch (error) {
+      // TODO: error mapping
       console.error(error);
 
       return {
@@ -111,6 +114,7 @@ export class TagsService {
         message: HttpStatusText.OK,
       };
     } catch (error) {
+      // TODO: error mapping
       console.error(error);
 
       return {

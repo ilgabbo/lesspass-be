@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { HttpStatus, Injectable, Scope } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import db from 'db';
 import { folders, users } from 'db/schema';
 import { and, eq, inArray, isNull } from 'drizzle-orm';
@@ -10,7 +10,7 @@ import { ServiceReturnValueModel } from 'shared/models/serviceReturnValue.model'
 import { RequestContextService } from '../request-context/request-context.service';
 import { UpdateFolderDto } from 'shared/dto/folder.dto';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class FoldersService {
   constructor(private readonly ctx: RequestContextService) {}
 
@@ -34,6 +34,7 @@ export class FoldersService {
         data: resultFolders,
       };
     } catch (error) {
+      // TODO: error mapping
       console.error(error);
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -62,6 +63,7 @@ export class FoldersService {
         message: HttpStatusText.OK,
       };
     } catch (error) {
+      // TODO: error mapping
       console.error(error);
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -86,6 +88,7 @@ export class FoldersService {
         message: HttpStatusText.OK,
       };
     } catch (error) {
+      // TODO: error mapping
       console.error(error);
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,

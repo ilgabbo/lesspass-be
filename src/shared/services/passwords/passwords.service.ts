@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { HttpStatus, Injectable, Scope } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import db from 'db';
 import { users, folders, passwords } from 'db/schema';
 import { and, eq, inArray, isNull } from 'drizzle-orm';
@@ -10,7 +9,7 @@ import { Password, Tag } from 'shared/models/database.model';
 import { ServiceReturnValueModel } from 'shared/models/serviceReturnValue.model';
 import { RequestContextService } from '../request-context/request-context.service';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class PasswordsService {
   constructor(private readonly ctx: RequestContextService) {}
 
@@ -60,6 +59,7 @@ export class PasswordsService {
         data: passwords,
       };
     } catch (error) {
+      // TODO: error mapping
       console.error(error);
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -101,6 +101,7 @@ export class PasswordsService {
         message: HttpStatusText.OK,
       };
     } catch (error) {
+      // TODO: error mapping
       console.error(error);
 
       return {
@@ -126,6 +127,7 @@ export class PasswordsService {
         message: HttpStatusText.OK,
       };
     } catch (error) {
+      // TODO: error mapping
       console.error(error);
 
       return {
