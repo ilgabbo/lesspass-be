@@ -4,13 +4,13 @@
 import { HttpStatus, Injectable, NestMiddleware } from '@nestjs/common';
 import db from 'db';
 import { users } from 'db/schema';
-import env from 'shared/env';
 import { NextFunction, Request, Response } from 'express';
 import { processEncryption } from 'shared/lib/enc/processEncryption';
 import { eq } from 'drizzle-orm';
-import { noEncryptionEndpoints, noSecretEndpoints } from 'shared/config/config';
-import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
+import { noEncryptionEndpoints, noKeyEndpoints } from 'shared/config/config';
 import { JsonWebTokenError, JwtService, TokenExpiredError } from '@nestjs/jwt';
+import { env } from 'process';
+import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
 import { TokenPayloadModel } from 'shared/models/token.model';
 
 @Injectable()
@@ -23,9 +23,14 @@ export class E2EMiddleware implements NestMiddleware {
     }
 
     let clientPublicKeyHex = '';
-    if (noSecretEndpoints.includes(req.originalUrl)) {
+    if (noKeyEndpoints.includes(req.originalUrl)) {
       clientPublicKeyHex = req.body.key;
     } else {
+      // const userId = req['payload'].userId;
+      // clientPublicKeyHex = await db
+      //   .select({ publicKey: users.publicKey })
+      //   .from(users)
+      //   .where(eq(users.userId, userId))[0];
       const token = req.headers.authorization?.split(' ')[1];
       if (!token) {
         return res.status(HttpStatus.UNAUTHORIZED).json({
@@ -73,10 +78,15 @@ export class E2EMiddleware implements NestMiddleware {
       req.body.data,
     );
 
-    req.body = {
-      ...JSON.parse(decryptedBody),
-      key: req.body.key,
-    };
+    if (noKeyEndpoints.includes(req.originalUrl)) {
+      req.body = {
+        ...JSON.parse(decryptedBody),
+        key: req.body.key,
+      };
+    } else {
+      req.body = JSON.parse(decryptedBody);
+    }
+
     return next();
   }
 }

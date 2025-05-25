@@ -16,6 +16,7 @@ export interface Password {
   tags: Array<{
     tagId: string;
     name: string;
+    color: string;
   }>;
 }
 

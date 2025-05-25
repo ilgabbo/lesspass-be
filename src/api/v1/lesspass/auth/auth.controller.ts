@@ -26,7 +26,10 @@ export class AuthController {
     @Headers('Authorization') header: string | undefined,
   ): Promise<ResponseModel> {
     try {
-      const result = await this.authService.signUp(body, header?.split(' ')[1]);
+      const result = await this.authService.signUp(
+        body,
+        header?.split(' ')?.[1],
+      );
 
       return result;
     } catch (error) {

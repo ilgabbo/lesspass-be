@@ -1,14 +1,24 @@
-import { Controller, Get, HttpStatus, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  Put,
+  Query,
+} from '@nestjs/common';
+import { FolderIdDto, UpdateFolderDto } from 'shared/dto/folder.dto';
 import { Endpoint } from 'shared/enums/endpoint.enum';
 import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
 import { ResponseModel } from 'shared/models/response.model';
 import { FoldersService } from 'shared/services/folders/folders.service';
 
-@Controller()
+@Controller(Endpoint.FOLDERS)
 export class FoldersController {
   constructor(private readonly foldersService: FoldersService) {}
 
-  @Get(Endpoint.FOLDERS)
+  @Get()
   async folders(
     @Query('folderId') folderId: string | undefined,
   ): Promise<ResponseModel> {
@@ -22,5 +32,20 @@ export class FoldersController {
       message: HttpStatusText.OK,
       data: folders.data || [],
     };
+  }
+
+  @Put(':folderId')
+  async updateFolder(
+    @Param() params: FolderIdDto,
+    @Body() body: UpdateFolderDto,
+  ): Promise<ResponseModel> {
+    return await this.foldersService.updateOne(params.folderId, body);
+  }
+
+  @Delete('delete')
+  async delete(@Body() body: FolderIdDto[]): Promise<ResponseModel> {
+    return await this.foldersService.delete(
+      body.map((folder) => folder.folderId),
+    );
   }
 }

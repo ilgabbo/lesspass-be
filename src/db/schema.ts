@@ -38,10 +38,10 @@ export const passwords = pgTable('passwords', {
   username: varchar({ length: FieldLength.EMAIL_LENGTH }).notNull(),
   url: varchar({ length: FieldLength.URL_LENGTH }),
   password: varchar().notNull(),
-  folderId: uuid().references(() => folders.folderId),
+  folderId: uuid().references(() => folders.folderId, { onDelete: 'cascade' }),
   userId: uuid()
     .notNull()
-    .references(() => users.userId),
+    .references(() => users.userId, { onDelete: 'cascade' }),
 });
 
 export const folders = pgTable('folders', {
@@ -49,10 +49,10 @@ export const folders = pgTable('folders', {
   createdAt: timestamp().defaultNow().notNull(),
   modifiedAt: timestamp().$onUpdateFn(() => new Date()),
   name: varchar({ length: FieldLength.TITLE_LENGTH }).notNull(),
-  parentId: uuid().references(() => folders.folderId),
+  parentId: uuid().references(() => folders.folderId, { onDelete: 'cascade' }),
   userId: uuid()
     .notNull()
-    .references(() => users.userId),
+    .references(() => users.userId, { onDelete: 'cascade' }),
 });
 
 export const tags = pgTable('tags', {
@@ -63,7 +63,7 @@ export const tags = pgTable('tags', {
   color: varchar().notNull(),
   userId: uuid()
     .notNull()
-    .references(() => users.userId),
+    .references(() => users.userId, { onDelete: 'cascade' }),
 });
 
 export const tagsToPasswords = pgTable(
@@ -71,10 +71,10 @@ export const tagsToPasswords = pgTable(
   {
     tagId: uuid()
       .notNull()
-      .references(() => tags.tagId),
+      .references(() => tags.tagId, { onDelete: 'cascade' }),
     passwordId: uuid()
       .notNull()
-      .references(() => passwords.passwordId),
+      .references(() => passwords.passwordId, { onDelete: 'cascade' }),
   },
   (t) => [primaryKey({ columns: [t.passwordId, t.tagId] })],
 );

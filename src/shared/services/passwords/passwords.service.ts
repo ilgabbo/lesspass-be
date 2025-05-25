@@ -1,30 +1,26 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { HttpStatus, Inject, Injectable, Scope } from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
+import { HttpStatus, Injectable, Scope } from '@nestjs/common';
 import db from 'db';
-import { users, folders } from 'db/schema';
-import { and, eq, isNull } from 'drizzle-orm';
-import { Request } from 'express';
+import { users, folders, passwords } from 'db/schema';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
-import { Password } from 'shared/models/database.model';
+import { Password, Tag } from 'shared/models/database.model';
 import { ServiceReturnValueModel } from 'shared/models/serviceReturnValue.model';
-import { TokenPayloadModel } from 'shared/models/token.model';
+import { RequestContextService } from '../request-context/request-context.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class PasswordsService {
-  constructor(@Inject(REQUEST) private readonly req: Request) {}
+  constructor(private readonly ctx: RequestContextService) {}
 
   async findMany(
     folderId?: string,
   ): Promise<ServiceReturnValueModel<Password[]>> {
     try {
-      const userId = (this.req['payload'] as TokenPayloadModel).userId;
-
       const resultPasswords = await db.query.passwords.findMany({
         where: and(
-          eq(users.userId, userId),
+          eq(users.userId, this.ctx.userId),
           folderId ? eq(folders.folderId, folderId) : isNull(folders.folderId),
         ),
         with: {
@@ -50,9 +46,10 @@ export class PasswordsService {
           url: password.url,
           password: password.password,
           folderId: password.folderId,
-          tags: password.tags.map((t2p) => ({
+          tags: password.tags.map((t2p: Record<string, Tag>) => ({
             tagId: t2p.tag.tagId,
             name: t2p.tag.name,
+            color: t2p.tag.color,
           })),
         })) as Password[];
       }
@@ -64,6 +61,73 @@ export class PasswordsService {
       };
     } catch (error) {
       console.error(error);
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: HttpStatusText.INTERNAL_SERVER_ERROR,
+      };
+    }
+  }
+
+  async updateOne(
+    passwordId: string,
+    updatedPassword: Partial<Password>,
+  ): Promise<ServiceReturnValueModel> {
+    try {
+      const password = await db.query.passwords.findFirst({
+        where: and(
+          eq(users.userId, this.ctx.userId),
+          eq(passwords.passwordId, passwordId),
+        ),
+      });
+      if (!password) {
+        return {
+          status: HttpStatus.NOT_FOUND,
+          message: HttpStatusText.NOT_FOUND,
+        };
+      }
+
+      await db
+        .update(passwords)
+        .set(updatedPassword)
+        .where(
+          and(
+            eq(passwords.userId, this.ctx.userId),
+            eq(passwords.passwordId, passwordId),
+          ),
+        );
+
+      return {
+        status: HttpStatus.OK,
+        message: HttpStatusText.OK,
+      };
+    } catch (error) {
+      console.error(error);
+
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: HttpStatusText.INTERNAL_SERVER_ERROR,
+      };
+    }
+  }
+
+  async delete(passwordIds: string[]): Promise<ServiceReturnValueModel> {
+    try {
+      await db
+        .delete(passwords)
+        .where(
+          and(
+            eq(passwords.userId, this.ctx.userId),
+            inArray(passwords.passwordId, passwordIds),
+          ),
+        );
+
+      return {
+        status: HttpStatus.OK,
+        message: HttpStatusText.OK,
+      };
+    } catch (error) {
+      console.error(error);
+
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         message: HttpStatusText.INTERNAL_SERVER_ERROR,

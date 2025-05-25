@@ -1,23 +1,20 @@
-import { HttpStatus, Inject, Injectable, Scope } from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
+import { HttpStatus, Injectable, Scope } from '@nestjs/common';
 import db from 'db';
 import { tags, users } from 'db/schema';
-import { and, eq } from 'drizzle-orm';
-import { Request } from 'express';
+import { and, eq, inArray } from 'drizzle-orm';
 import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
 import { Tag } from 'shared/models/database.model';
 import { ServiceReturnValueModel } from 'shared/models/serviceReturnValue.model';
-import { TokenPayloadModel } from 'shared/models/token.model';
+import { RequestContextService } from '../request-context/request-context.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class TagsService {
-  constructor(@Inject(REQUEST) private readonly req: Request) {}
+  constructor(private readonly ctx: RequestContextService) {}
 
   async findOne(tagId: string): Promise<ServiceReturnValueModel<Tag>> {
     try {
-      const userId = (this.req['payload'] as TokenPayloadModel).userId;
       const tag = await db.query.tags.findFirst({
-        where: and(eq(tags.tagId, tagId), eq(tags.userId, userId)),
+        where: and(eq(tags.tagId, tagId), eq(tags.userId, this.ctx.userId)),
       });
 
       if (!tag) {
@@ -42,20 +39,22 @@ export class TagsService {
     }
   }
 
-  async findMany(): Promise<ServiceReturnValueModel<Tag[]>> {
+  async findMany(tagIds?: string[]): Promise<ServiceReturnValueModel<Tag[]>> {
     try {
-      const userId = (this.req['payload'] as TokenPayloadModel).userId;
-      const tags = await db.query.tags.findMany({
+      const tagsResult = await db.query.tags.findMany({
         columns: {
           userId: false,
         },
-        where: eq(users.userId, userId),
+        where: and(
+          eq(users.userId, this.ctx.userId),
+          tagIds ? inArray(tags.tagId, tagIds) : undefined,
+        ),
       });
 
       return {
         status: HttpStatus.OK,
         message: HttpStatusText.OK,
-        data: tags,
+        data: tagsResult,
       };
     } catch (error) {
       console.error(error);
@@ -99,17 +98,13 @@ export class TagsService {
     }
   }
 
-  async deleteOne(tagId: string): Promise<ServiceReturnValueModel> {
+  async delete(tagIds: string[]): Promise<ServiceReturnValueModel> {
     try {
-      const tagToDelete = await this.findOne(tagId);
-
-      if (tagToDelete.status !== HttpStatus.OK) {
-        return {
-          status: tagToDelete.status,
-          message: tagToDelete.message,
-        };
-      }
-      await db.delete(tags).where(eq(tags.tagId, tagId));
+      await db
+        .delete(tags)
+        .where(
+          and(eq(tags.userId, this.ctx.userId), inArray(tags.tagId, tagIds)),
+        );
 
       return {
         status: HttpStatus.OK,

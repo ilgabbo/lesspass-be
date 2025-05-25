@@ -3,6 +3,13 @@
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { Transform } from 'class-transformer';
 
+export class TagIdDto {
+  @IsUUID()
+  @IsNotEmpty()
+  @Transform(({ value }) => (value === null ? undefined : value))
+  readonly tagId: string;
+}
+
 export class CreateTagDto {
   @IsString()
   @IsNotEmpty()

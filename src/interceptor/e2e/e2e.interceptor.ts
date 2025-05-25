@@ -16,7 +16,7 @@ import db from 'db';
 import { users } from 'db/schema';
 import { eq } from 'drizzle-orm';
 import { env } from 'process';
-import { noSecretEndpoints, noEncryptionEndpoints } from 'shared/config/config';
+import { noKeyEndpoints, noEncryptionEndpoints } from 'shared/config/config';
 import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
 
 @Injectable()
@@ -36,7 +36,7 @@ export class E2EInterceptor implements NestInterceptor {
         }
         if (json.data) {
           let clientPublicKeyHex = '';
-          if (noSecretEndpoints.includes(request.originalUrl)) {
+          if (noKeyEndpoints.includes(request.originalUrl)) {
             clientPublicKeyHex = request.body.key;
           } else {
             const token = request.headers.authorization?.split(' ')[1];
