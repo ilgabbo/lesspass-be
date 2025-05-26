@@ -13,17 +13,13 @@ import { processEncryption } from 'shared/lib/enc/processEncryption';
 import { map, Observable } from 'rxjs';
 import { users } from 'db/schema';
 import { eq } from 'drizzle-orm';
-import { env } from 'process';
 import { noKeyEndpoints, noEncryptionEndpoints } from 'shared/config';
 import { HttpStatusText } from 'shared/enums/httpStatusText.enum';
-import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import { TokenPayloadModel } from 'shared/models/token.model';
 import db from 'db';
 
 @Injectable()
 export class E2EInterceptor implements NestInterceptor {
-  private readonly jwtService = new JwtService();
-
   intercept(
     context: ExecutionContext,
     next: CallHandler,
@@ -41,7 +37,6 @@ export class E2EInterceptor implements NestInterceptor {
         if (res.data) {
           let clientPublicKeyHex = '';
 
-          // thinking of moving this logic into a service
           if (noKeyEndpoints.includes(request.originalUrl)) {
             // TODO: custom message
             if (!request.body.key) {
@@ -53,41 +48,14 @@ export class E2EInterceptor implements NestInterceptor {
             }
             clientPublicKeyHex = request.body.key;
           } else {
-            const token = request.headers.authorization?.split(' ')[1];
-            if (!token) {
-              response.status(HttpStatus.UNAUTHORIZED);
-              return {
-                status: HttpStatus.UNAUTHORIZED,
-                message: HttpStatusText.UNAUTHORIZED,
-              };
-            }
-
-            try {
-              const verifiedToken: TokenPayloadModel =
-                await this.jwtService.verifyAsync(token, {
-                  secret: env.JWT_SECRET,
-                });
-
-              const user = await db
-                .select({ publicKey: users.publicKey })
-                .from(users)
-                .where(eq(users.userId, verifiedToken.userId));
-              clientPublicKeyHex = user[0].publicKey;
-            } catch (error) {
-              console.error(error);
-              if (error instanceof JsonWebTokenError) {
-                response.status(HttpStatus.UNAUTHORIZED);
-                return {
-                  status: HttpStatus.UNAUTHORIZED,
-                  message: HttpStatusText.UNAUTHORIZED,
-                };
-              }
-              response.status(HttpStatus.INTERNAL_SERVER_ERROR);
-              return {
-                status: HttpStatus.INTERNAL_SERVER_ERROR,
-                message: HttpStatusText.INTERNAL_SERVER_ERROR,
-              };
-            }
+            const tokenPayload = request['payload'] as TokenPayloadModel;
+            const user = await db
+              .select({
+                publicKey: users.publicKey,
+              })
+              .from(users)
+              .where(eq(users.userId, tokenPayload.userId));
+            clientPublicKeyHex = user[0].publicKey;
           }
 
           const encryptedData = processEncryption(

@@ -3,7 +3,7 @@ import { UsersService } from '../users/users.service';
 import { ServiceReturnValueModel } from 'shared/models/serviceReturnValue.model';
 import { HttpStatusText } from 'shared/enums/httpStatusText.enum';
 import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
+import crypto, { randomUUID } from 'crypto';
 import env from 'shared/env';
 import db from 'db';
 import { users } from 'db/schema';
@@ -43,10 +43,13 @@ export class AuthService {
         };
       }
 
+      const tokenVersion = randomUUID();
+
       await db
         .update(users)
         .set({
           publicKey: publicKey,
+          tokenVersion: tokenVersion,
         })
         .where(eq(users.email, email));
 
@@ -54,6 +57,7 @@ export class AuthService {
         {
           userId: user.data!.userId,
           role: user.data!.role,
+          tokenVersion: tokenVersion,
         },
         {
           secret: env.JWT_SECRET,

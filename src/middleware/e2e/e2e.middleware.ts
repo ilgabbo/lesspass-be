@@ -48,12 +48,25 @@ export class E2EMiddleware implements NestMiddleware {
             secret: env.JWT_SECRET,
           });
 
-        req['payload'] = verifiedToken;
-
         const user = await db
-          .select({ publicKey: users.publicKey })
+          .select({
+            publicKey: users.publicKey,
+            tokenVersion: users.tokenVersion,
+          })
           .from(users)
           .where(eq(users.userId, verifiedToken.userId));
+
+        if (
+          !user.length ||
+          user[0].tokenVersion !== verifiedToken.tokenVersion
+        ) {
+          return res.status(HttpStatus.UNAUTHORIZED).json({
+            status: HttpStatus.UNAUTHORIZED,
+            message: HttpStatusText.UNAUTHORIZED,
+          });
+        }
+
+        req['payload'] = verifiedToken;
         clientPublicKeyHex = user[0].publicKey;
       } catch (error) {
         // TODO: error mapping
