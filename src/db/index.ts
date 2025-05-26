@@ -1,7 +1,4 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
-import env from 'shared/env';
-import * as schema from './schema';
-
-const db = drizzle({ schema: schema, connection: env.DATABASE_URL });
+import db from './db';
 
 export default db;
+export * from './schema';

@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { ServiceReturnValueModel } from 'shared/models/serviceReturnValue.model';
-import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
+import { HttpStatusText } from 'shared/enums/httpStatusText.enum';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import env from 'shared/env';

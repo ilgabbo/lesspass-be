@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import db from 'db';
 import { users } from 'db/schema';
 import { eq } from 'drizzle-orm';
-import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
+import { HttpStatusText } from 'shared/enums/httpStatusText.enum';
 import { UserFromTable } from 'shared/models/database.model';
 import { ServiceReturnValueModel } from 'shared/models/serviceReturnValue.model';
 

@@ -7,11 +7,11 @@ import {
   Param,
   Put,
 } from '@nestjs/common';
-import { Endpoint } from 'shared/enums/endpoint.enum';
-import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
-import { ResponseModel } from 'shared/models/response.model';
-import { TagsService } from 'shared/services/tags/tags.service';
-import { TagIdDto, UpdateTagDto } from 'shared/dto/tag.dto';
+import { Endpoint } from 'shared/enums';
+import { HttpStatusText } from 'shared/enums';
+import { ResponseModel } from 'shared/models';
+import { TagsService } from 'shared/services';
+import { TagIdDto, UpdateTagDto } from 'shared/dto';
 
 @Controller(Endpoint.TAGS)
 export class TagsController {

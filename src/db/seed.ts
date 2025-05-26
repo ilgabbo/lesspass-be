@@ -1,4 +1,4 @@
-import db from './index';
+import db from './db';
 import { folders, passwords, tags, tagsToPasswords } from './schema';
 import { randomUUID } from 'crypto';
 

@@ -7,11 +7,11 @@ import { users } from 'db/schema';
 import { NextFunction, Request, Response } from 'express';
 import { processEncryption } from 'shared/lib/enc/processEncryption';
 import { eq } from 'drizzle-orm';
-import { noEncryptionEndpoints, noKeyEndpoints } from 'shared/config/config';
+import { noEncryptionEndpoints, noKeyEndpoints } from 'shared/config';
 import { JsonWebTokenError, JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { env } from 'process';
-import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
-import { TokenPayloadModel } from 'shared/models/token.model';
+import { HttpStatusText } from 'shared/enums';
+import { TokenPayloadModel } from 'shared/models';
 
 @Injectable()
 export class E2EMiddleware implements NestMiddleware {

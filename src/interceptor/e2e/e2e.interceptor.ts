@@ -11,14 +11,14 @@ import { Request, Response } from 'express';
 import { ResponseModel } from 'shared/models/response.model';
 import { processEncryption } from 'shared/lib/enc/processEncryption';
 import { map, Observable } from 'rxjs';
-import db from 'db';
 import { users } from 'db/schema';
 import { eq } from 'drizzle-orm';
 import { env } from 'process';
-import { noKeyEndpoints, noEncryptionEndpoints } from 'shared/config/config';
-import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
+import { noKeyEndpoints, noEncryptionEndpoints } from 'shared/config';
+import { HttpStatusText } from 'shared/enums/httpStatusText.enum';
 import { JsonWebTokenError, JwtService } from '@nestjs/jwt';
 import { TokenPayloadModel } from 'shared/models/token.model';
+import db from 'db';
 
 @Injectable()
 export class E2EInterceptor implements NestInterceptor {

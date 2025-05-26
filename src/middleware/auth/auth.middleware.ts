@@ -5,7 +5,7 @@ import db from 'db';
 import { users } from 'db/schema';
 import { eq } from 'drizzle-orm';
 import { Response, Request } from 'express';
-import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
+import { HttpStatusText } from 'shared/enums/httpStatusText.enum';
 import env from 'shared/env';
 import { TokenPayloadModel } from 'shared/models/token.model';
 

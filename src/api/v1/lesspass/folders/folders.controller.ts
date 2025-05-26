@@ -8,11 +8,11 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { FolderIdDto, UpdateFolderDto } from 'shared/dto/folder.dto';
-import { Endpoint } from 'shared/enums/endpoint.enum';
-import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
-import { ResponseModel } from 'shared/models/response.model';
-import { FoldersService } from 'shared/services/folders/folders.service';
+import { FolderIdDto, UpdateFolderDto } from 'shared/dto';
+import { Endpoint } from 'shared/enums';
+import { HttpStatusText } from 'shared/enums';
+import { ResponseModel } from 'shared/models';
+import { FoldersService } from 'shared/services';
 
 @Controller(Endpoint.FOLDERS)
 export class FoldersController {

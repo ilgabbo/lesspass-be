@@ -1,8 +1,8 @@
 import { Body, Controller, Headers, Post } from '@nestjs/common';
-import { ResponseModel } from 'shared/models/response.model';
-import { Endpoint } from 'shared/enums/endpoint.enum';
-import { SigninDto, SignupDto } from 'shared/dto/auth.dto';
-import { AuthService } from 'shared/services/auth/auth.service';
+import { ResponseModel } from 'shared/models';
+import { Endpoint } from 'shared/enums';
+import { SigninDto, SignupDto } from 'shared/dto';
+import { AuthService } from 'shared/services';
 
 @Controller()
 export class AuthController {

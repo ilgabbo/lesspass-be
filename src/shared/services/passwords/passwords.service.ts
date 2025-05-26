@@ -4,7 +4,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import db from 'db';
 import { users, folders, passwords } from 'db/schema';
 import { and, eq, inArray, isNull } from 'drizzle-orm';
-import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
+import { HttpStatusText } from 'shared/enums/httpStatusText.enum';
 import { Password, Tag } from 'shared/models/database.model';
 import { ServiceReturnValueModel } from 'shared/models/serviceReturnValue.model';
 import { RequestContextService } from '../request-context/request-context.service';

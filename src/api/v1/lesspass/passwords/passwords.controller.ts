@@ -8,11 +8,11 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { PasswordIdDto, UpdatePasswordDto } from 'shared/dto/password.dto';
-import { Endpoint } from 'shared/enums/endpoint.enum';
-import { HttpStatusText } from 'shared/enums/httpstatustext.enum';
-import { ResponseModel } from 'shared/models/response.model';
-import { PasswordsService } from 'shared/services/passwords/passwords.service';
+import { PasswordIdDto, UpdatePasswordDto } from 'shared/dto';
+import { Endpoint } from 'shared/enums';
+import { HttpStatusText } from 'shared/enums';
+import { ResponseModel } from 'shared/models';
+import { PasswordsService } from 'shared/services';
 
 @Controller(Endpoint.PASSWORDS)
 export class PasswordsController {

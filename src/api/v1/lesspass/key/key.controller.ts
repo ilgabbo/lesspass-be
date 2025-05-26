@@ -1,7 +1,7 @@
 import { Controller, Get, HttpStatus } from '@nestjs/common';
-import { Endpoint } from 'shared/enums/endpoint.enum';
+import { Endpoint } from 'shared/enums';
 import env from 'shared/env';
-import { ResponseModel } from 'shared/models/response.model';
+import { ResponseModel } from 'shared/models';
 
 @Controller(Endpoint.KEY)
 export class KeyController {
