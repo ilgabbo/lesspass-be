@@ -6,5 +6,6 @@ export interface TokenPayloadModel {
   iat: number;
   exp: number;
   tokenVersion: string;
+  clientPublicKey: string;
   jti: string;
 }

@@ -11,6 +11,7 @@ import { HttpStatusText } from 'shared/enums';
 @Catch()
 export class CustomExceptionFilter implements ExceptionFilter {
   catch(err: Error, host: ArgumentsHost) {
+    console.error(err);
     const res = host.switchToHttp().getResponse<Response>();
 
     switch (err.constructor) {
