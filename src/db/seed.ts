@@ -2,7 +2,7 @@ import db from './db';
 import { folders, passwords, tags, tagsToPasswords } from './schema';
 import { randomUUID } from 'crypto';
 
-const existingUserId = 'ea608887-df45-4869-a41c-143df4d4b030';
+const existingUserId = 'e681661b-a902-4993-952b-eeae1b4bb857';
 
 async function seed() {
   console.log('Start seeding...');

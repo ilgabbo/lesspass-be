@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
@@ -19,7 +20,7 @@ export const userRole = pgEnum('role', [UserRole.ADMIN, UserRole.USER]);
 export const users = pgTable('users', {
   userId: uuid().primaryKey().defaultRandom().notNull(),
   createdAt: timestamp().defaultNow().notNull(),
-  modifiedAt: timestamp().$onUpdateFn(() => new Date()),
+  modifiedAt: timestamp().$onUpdate(() => new Date()),
   firstName: varchar({ length: FieldLength.FIRSTNAME_LENGTH }).notNull(),
   lastName: varchar({ length: FieldLength.LASTNAME_LENGTH }).notNull(),
   email: varchar({ length: FieldLength.EMAIL_LENGTH }).notNull(),
@@ -33,7 +34,7 @@ export const users = pgTable('users', {
 export const passwords = pgTable('passwords', {
   passwordId: uuid().primaryKey().defaultRandom().notNull(),
   createdAt: timestamp().defaultNow().notNull(),
-  modifiedAt: timestamp().$onUpdateFn(() => new Date()),
+  modifiedAt: timestamp().$onUpdate(() => new Date()),
   title: varchar({ length: FieldLength.TITLE_LENGTH }).notNull(),
   description: varchar({ length: FieldLength.DESCRIPTION_LENGTH }),
   username: varchar({ length: FieldLength.EMAIL_LENGTH }).notNull(),
@@ -48,7 +49,7 @@ export const passwords = pgTable('passwords', {
 export const folders = pgTable('folders', {
   folderId: uuid().primaryKey().defaultRandom().notNull(),
   createdAt: timestamp().defaultNow().notNull(),
-  modifiedAt: timestamp().$onUpdateFn(() => new Date()),
+  modifiedAt: timestamp({ mode: 'date' }).$onUpdate(() => new Date()),
   name: varchar({ length: FieldLength.TITLE_LENGTH }).notNull(),
   parentId: uuid().references(() => folders.folderId, { onDelete: 'cascade' }),
   userId: uuid()
@@ -59,7 +60,7 @@ export const folders = pgTable('folders', {
 export const tags = pgTable('tags', {
   tagId: uuid().primaryKey().defaultRandom().notNull(),
   createdAt: timestamp().defaultNow().notNull(),
-  modifiedAt: timestamp().$onUpdateFn(() => new Date()),
+  modifiedAt: timestamp().$onUpdate(() => new Date()),
   name: varchar({ length: FieldLength.TITLE_LENGTH }).notNull(),
   color: varchar().notNull(),
   userId: uuid()

@@ -12,115 +12,75 @@ export class TagsService {
   constructor(private readonly ctx: RequestContextService) {}
 
   async findOne(tagId: string): Promise<ServiceReturnValueModel<Tag>> {
-    try {
-      const tag = await db.query.tags.findFirst({
-        where: and(eq(tags.tagId, tagId), eq(tags.userId, this.ctx.userId)),
-      });
+    const tag = await db.query.tags.findFirst({
+      where: and(eq(tags.tagId, tagId), eq(tags.userId, this.ctx.userId)),
+    });
 
-      if (!tag) {
-        return {
-          status: HttpStatus.NOT_FOUND,
-          message: HttpStatusText.NOT_FOUND,
-        };
-      }
-
+    if (!tag) {
       return {
-        status: HttpStatus.OK,
-        message: HttpStatusText.OK,
-        data: tag,
-      };
-    } catch (error) {
-      // TODO: error mapping
-      console.error(error);
-
-      return {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: HttpStatusText.INTERNAL_SERVER_ERROR,
+        status: HttpStatus.NOT_FOUND,
+        message: HttpStatusText.NOT_FOUND,
       };
     }
+
+    return {
+      status: HttpStatus.OK,
+      message: HttpStatusText.OK,
+      data: tag,
+    };
   }
 
   async findMany(tagIds?: string[]): Promise<ServiceReturnValueModel<Tag[]>> {
-    try {
-      const tagsResult = await db.query.tags.findMany({
-        columns: {
-          userId: false,
-        },
-        where: and(
-          eq(users.userId, this.ctx.userId),
-          tagIds ? inArray(tags.tagId, tagIds) : undefined,
-        ),
-      });
+    const tagsResult = await db.query.tags.findMany({
+      columns: {
+        userId: false,
+      },
+      where: and(
+        eq(users.userId, this.ctx.userId),
+        tagIds ? inArray(tags.tagId, tagIds) : undefined,
+      ),
+    });
 
-      return {
-        status: HttpStatus.OK,
-        message: HttpStatusText.OK,
-        data: tagsResult,
-      };
-    } catch (error) {
-      // TODO: error mapping
-      console.error(error);
-
-      return {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: HttpStatusText.INTERNAL_SERVER_ERROR,
-      };
-    }
+    return {
+      status: HttpStatus.OK,
+      message: HttpStatusText.OK,
+      data: tagsResult,
+    };
   }
 
   async updateOne(
     tag: Partial<Tag>,
     tagId: string,
   ): Promise<ServiceReturnValueModel> {
-    try {
-      const tagToUpdate = await this.findOne(tagId);
+    const tagToUpdate = await this.findOne(tagId);
 
-      if (tagToUpdate.status !== HttpStatus.OK) {
-        return {
-          status: tagToUpdate.status,
-          message: tagToUpdate.message,
-        };
-      }
-      await db
-        .update(tags)
-        .set(tag)
-        .where(eq(tags.tagId, tagToUpdate.data!.tagId));
-
+    if (tagToUpdate.status !== HttpStatus.OK) {
       return {
-        status: HttpStatus.OK,
-        message: HttpStatusText.OK,
-      };
-    } catch (error) {
-      // TODO: error mapping
-      console.error(error);
-
-      return {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: HttpStatusText.INTERNAL_SERVER_ERROR,
+        status: tagToUpdate.status,
+        message: tagToUpdate.message,
       };
     }
+    await db
+      .update(tags)
+      .set(tag)
+      .where(eq(tags.tagId, tagToUpdate.data!.tagId));
+
+    return {
+      status: HttpStatus.OK,
+      message: HttpStatusText.OK,
+    };
   }
 
   async delete(tagIds: string[]): Promise<ServiceReturnValueModel> {
-    try {
-      await db
-        .delete(tags)
-        .where(
-          and(eq(tags.userId, this.ctx.userId), inArray(tags.tagId, tagIds)),
-        );
+    await db
+      .delete(tags)
+      .where(
+        and(eq(tags.userId, this.ctx.userId), inArray(tags.tagId, tagIds)),
+      );
 
-      return {
-        status: HttpStatus.OK,
-        message: HttpStatusText.OK,
-      };
-    } catch (error) {
-      // TODO: error mapping
-      console.error(error);
-
-      return {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: HttpStatusText.INTERNAL_SERVER_ERROR,
-      };
-    }
+    return {
+      status: HttpStatus.OK,
+      message: HttpStatusText.OK,
+    };
   }
 }

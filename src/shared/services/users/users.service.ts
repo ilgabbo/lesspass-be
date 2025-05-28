@@ -11,31 +11,21 @@ export class UsersService {
   async findOne(
     email: string,
   ): Promise<ServiceReturnValueModel<UserFromTable>> {
-    try {
-      const user = await db.query.users.findFirst({
-        where: eq(users.email, email),
-      });
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, email),
+    });
 
-      if (!user) {
-        return {
-          status: HttpStatus.NOT_FOUND,
-          message: 'User not found',
-        };
-      }
-
+    if (!user) {
       return {
-        status: HttpStatus.OK,
-        message: HttpStatusText.OK,
-        data: user as UserFromTable,
-      };
-    } catch (error) {
-      // TODO: error mapping
-      console.error(error);
-
-      return {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: HttpStatusText.INTERNAL_SERVER_ERROR,
+        status: HttpStatus.NOT_FOUND,
+        message: 'User not found',
       };
     }
+
+    return {
+      status: HttpStatus.OK,
+      message: HttpStatusText.OK,
+      data: user as UserFromTable,
+    };
   }
 }

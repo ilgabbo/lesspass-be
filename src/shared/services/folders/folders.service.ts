@@ -17,83 +17,56 @@ export class FoldersService {
   async findMany(
     folderId?: string,
   ): Promise<ServiceReturnValueModel<Folder[]>> {
-    try {
-      const resultFolders = (await db.query.folders.findMany({
-        columns: {
-          userId: false,
-        },
-        where: and(
-          eq(users.userId, this.ctx.userId),
-          folderId ? eq(folders.parentId, folderId) : isNull(folders.parentId),
-        ),
-      })) as Folder[];
+    const resultFolders = (await db.query.folders.findMany({
+      columns: {
+        userId: false,
+      },
+      where: and(
+        eq(users.userId, this.ctx.userId),
+        folderId ? eq(folders.parentId, folderId) : isNull(folders.parentId),
+      ),
+    })) as Folder[];
 
-      return {
-        status: HttpStatus.OK,
-        message: HttpStatusText.OK,
-        data: resultFolders,
-      };
-    } catch (error) {
-      // TODO: error mapping
-      console.error(error);
-      return {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: HttpStatusText.INTERNAL_SERVER_ERROR,
-      };
-    }
+    return {
+      status: HttpStatus.OK,
+      message: HttpStatusText.OK,
+      data: resultFolders,
+    };
   }
 
   async updateOne(
     folderId: string,
     data: UpdateFolderDto,
   ): Promise<ServiceReturnValueModel> {
-    try {
-      await db
-        .update(folders)
-        .set(data)
-        .where(
-          and(
-            eq(folders.userId, this.ctx.userId),
-            eq(folders.folderId, folderId),
-          ),
-        );
+    await db
+      .update(folders)
+      .set(data)
+      .where(
+        and(
+          eq(folders.userId, this.ctx.userId),
+          eq(folders.folderId, folderId),
+        ),
+      );
 
-      return {
-        status: HttpStatus.OK,
-        message: HttpStatusText.OK,
-      };
-    } catch (error) {
-      // TODO: error mapping
-      console.error(error);
-      return {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: HttpStatusText.INTERNAL_SERVER_ERROR,
-      };
-    }
+    return {
+      status: HttpStatus.OK,
+      message: HttpStatusText.OK,
+    };
   }
 
   async delete(folderIds: string[]): Promise<ServiceReturnValueModel> {
-    try {
-      await db
-        .delete(folders)
-        .where(
-          and(
-            eq(folders.userId, this.ctx.userId),
-            inArray(folders.folderId, folderIds),
-          ),
-        );
+    await db
+      .delete(folders)
+      .where(
+        and(
+          eq(folders.userId, this.ctx.userId),
+          inArray(folders.folderId, folderIds),
+        ),
+      );
 
-      return {
-        status: HttpStatus.OK,
-        message: HttpStatusText.OK,
-      };
-    } catch (error) {
-      // TODO: error mapping
-      console.error(error);
-      return {
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: HttpStatusText.INTERNAL_SERVER_ERROR,
-      };
-    }
+    return {
+      status: HttpStatus.OK,
+      message: HttpStatusText.OK,
+    };
   }
 }
