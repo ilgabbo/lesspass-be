@@ -60,7 +60,7 @@ export class AuthService {
       },
       {
         secret: env.JWT_SECRET,
-        expiresIn: '3mins',
+        expiresIn: '2mins',
         algorithm: 'HS256',
         jwtid: crypto.randomBytes(16).toString('hex'),
       },

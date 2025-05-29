@@ -34,44 +34,58 @@ export class E2EInterceptor implements NestInterceptor {
           return res;
         }
 
-        if (res.data) {
-          let clientPublicKeyHex = '';
+        let clientPublicKeyHex = '';
 
-          if (noKeyEndpoints.includes(request.originalUrl)) {
-            // TODO: custom message
-            if (!request.body.key) {
-              response.status(HttpStatus.BAD_REQUEST);
-              return {
-                status: HttpStatus.BAD_REQUEST,
-                message: HttpStatusText.BAD_REQUEST,
-              };
-            }
-            clientPublicKeyHex = request.body.key;
-          } else {
-            const tokenPayload = request['payload'] as TokenPayloadModel;
-            const user = await db
-              .select({
-                publicKey: users.publicKey,
-              })
-              .from(users)
-              .where(eq(users.userId, tokenPayload.userId));
-            clientPublicKeyHex = user[0].publicKey;
+        if (noKeyEndpoints.includes(request.originalUrl)) {
+          // TODO: custom message
+          if (!request.body.key) {
+            response.status(HttpStatus.BAD_REQUEST);
+            return {
+              status: HttpStatus.BAD_REQUEST,
+              message: HttpStatusText.BAD_REQUEST,
+            };
           }
+          clientPublicKeyHex = request.body.key;
+        } else {
+          const tokenPayload = request['payload'] as TokenPayloadModel;
+          const user = await db
+            .select({
+              publicKey: users.publicKey,
+            })
+            .from(users)
+            .where(eq(users.userId, tokenPayload.userId));
+          clientPublicKeyHex = user[0].publicKey;
+        }
 
-          const encryptedData = processEncryption(
-            clientPublicKeyHex,
-            'encrypt',
-            res.data,
-          );
-
+        if (res.data) {
           return {
             status: res.status,
             message: res.message,
-            data: encryptedData,
+            ...(request['token']
+              ? {
+                  token: processEncryption(
+                    clientPublicKeyHex,
+                    'encrypt',
+                    request['token'] as string,
+                  ),
+                }
+              : undefined),
+            data: processEncryption(clientPublicKeyHex, 'encrypt', res.data),
           };
         }
 
-        return res;
+        return {
+          ...res,
+          ...(request['token']
+            ? {
+                token: processEncryption(
+                  clientPublicKeyHex,
+                  'encrypt',
+                  request['token'] as string,
+                ),
+              }
+            : undefined),
+        };
       }),
     );
   }

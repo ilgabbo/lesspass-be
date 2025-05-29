@@ -9,13 +9,14 @@ import { protectedRoutes } from 'shared/config';
 import { HttpStatusText } from 'shared/enums/httpStatusText.enum';
 import env from 'shared/env';
 import { TokenPayloadModel } from 'shared/models/token.model';
+import crypto from 'crypto';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
   constructor(private readonly jwtService: JwtService) {}
 
   async use(req: Request, res: Response, next: () => void) {
-    if (!protectedRoutes.includes(req.originalUrl)) {
+    if (!protectedRoutes.some((prefix) => req.originalUrl.startsWith(prefix))) {
       return next();
     }
 
@@ -47,7 +48,24 @@ export class AuthMiddleware implements NestMiddleware {
         (verifiedToken.exp * 1000 - Date.now()) / 60000,
       );
       if (remainingTime - 2 <= 0) {
-        // TODO
+        const tokenVersion = crypto.randomUUID();
+        await db
+          .update(users)
+          .set({ tokenVersion })
+          .where(eq(users.userId, user[0].userId));
+        req['token'] = await this.jwtService.signAsync(
+          {
+            userId: user[0].userId,
+            role: user[0].role,
+            tokenVersion: tokenVersion,
+          },
+          {
+            secret: env.JWT_SECRET,
+            expiresIn: '2mins',
+            algorithm: 'HS256',
+            jwtid: crypto.randomBytes(16).toString('hex'),
+          },
+        );
       }
 
       req['payload'] = {
