@@ -12,6 +12,7 @@ import { SignupDto } from 'shared/dto/auth.dto';
 import { UserRole } from 'shared/enums/role.enum';
 import { JwtService } from '@nestjs/jwt';
 import { TokenPayloadModel } from 'shared/models/token.model';
+import { TOKEN_EXP } from 'shared/config';
 
 @Injectable()
 export class AuthService {
@@ -60,7 +61,7 @@ export class AuthService {
       },
       {
         secret: env.JWT_SECRET,
-        expiresIn: '2mins',
+        expiresIn: TOKEN_EXP,
         algorithm: 'HS256',
         jwtid: crypto.randomBytes(16).toString('hex'),
       },

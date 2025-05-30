@@ -5,13 +5,14 @@ import {
   Get,
   HttpStatus,
   Param,
+  Post,
   Put,
 } from '@nestjs/common';
 import { Endpoint } from 'shared/enums';
 import { HttpStatusText } from 'shared/enums';
 import { ResponseModel } from 'shared/models';
 import { TagsService } from 'shared/services';
-import { TagIdDto, UpdateTagDto } from 'shared/dto';
+import { CreateTagsDto, TagIdsDto, UpdateTagDto } from 'shared/dto';
 
 @Controller(Endpoint.TAGS)
 export class TagsController {
@@ -20,6 +21,11 @@ export class TagsController {
   @Get()
   async getTags(): Promise<ResponseModel> {
     return await this.tagsService.findMany();
+  }
+
+  @Post()
+  async createTags(@Body() body: CreateTagsDto): Promise<ResponseModel> {
+    return await this.tagsService.create(body);
   }
 
   @Put(':tagId')
@@ -38,7 +44,7 @@ export class TagsController {
   }
 
   @Delete('delete')
-  async deleteTag(@Body() body: TagIdDto[]): Promise<ResponseModel> {
-    return await this.tagsService.delete(body.map((tag) => tag.tagId));
+  async deleteTag(@Body() body: TagIdsDto): Promise<ResponseModel> {
+    return await this.tagsService.delete(body);
   }
 }

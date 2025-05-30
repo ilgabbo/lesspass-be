@@ -5,7 +5,7 @@ import db from 'db';
 import { users } from 'db/schema';
 import { eq } from 'drizzle-orm';
 import { Response, Request } from 'express';
-import { protectedRoutes } from 'shared/config';
+import { protectedRoutes, TOKEN_EXP } from 'shared/config';
 import { HttpStatusText } from 'shared/enums/httpStatusText.enum';
 import env from 'shared/env';
 import { TokenPayloadModel } from 'shared/models/token.model';
@@ -61,7 +61,7 @@ export class AuthMiddleware implements NestMiddleware {
           },
           {
             secret: env.JWT_SECRET,
-            expiresIn: '2mins',
+            expiresIn: TOKEN_EXP,
             algorithm: 'HS256',
             jwtid: crypto.randomBytes(16).toString('hex'),
           },

@@ -5,10 +5,16 @@ import {
   Get,
   HttpStatus,
   Param,
+  Post,
   Put,
   Query,
 } from '@nestjs/common';
-import { FolderIdDto, UpdateFolderDto } from 'shared/dto';
+import {
+  CreateFolderDto,
+  DeleteFolderDto,
+  FolderIdDto,
+  UpdateFolderDto,
+} from 'shared/dto';
 import { Endpoint } from 'shared/enums';
 import { HttpStatusText } from 'shared/enums';
 import { ResponseModel } from 'shared/models';
@@ -34,6 +40,11 @@ export class FoldersController {
     };
   }
 
+  @Post()
+  async createFolder(@Body() body: CreateFolderDto): Promise<ResponseModel> {
+    return await this.foldersService.createOne(body);
+  }
+
   @Put(':folderId')
   async updateFolder(
     @Param() params: FolderIdDto,
@@ -43,9 +54,7 @@ export class FoldersController {
   }
 
   @Delete('delete')
-  async delete(@Body() body: FolderIdDto[]): Promise<ResponseModel> {
-    return await this.foldersService.delete(
-      body.map((folder) => folder.folderId),
-    );
+  async delete(@Body() body: DeleteFolderDto): Promise<ResponseModel> {
+    return await this.foldersService.delete(body);
   }
 }

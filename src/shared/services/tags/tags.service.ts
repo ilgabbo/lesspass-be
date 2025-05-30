@@ -6,6 +6,7 @@ import { HttpStatusText } from 'shared/enums/httpStatusText.enum';
 import { Tag } from 'shared/models/database.model';
 import { ServiceReturnValueModel } from 'shared/models/serviceReturnValue.model';
 import { RequestContextService } from '../request-context/request-context.service';
+import { CreateTagsDto, TagIdsDto } from 'shared/dto';
 
 @Injectable()
 export class TagsService {
@@ -30,14 +31,19 @@ export class TagsService {
     };
   }
 
-  async findMany(tagIds?: string[]): Promise<ServiceReturnValueModel<Tag[]>> {
+  async findMany(tagIds?: TagIdsDto): Promise<ServiceReturnValueModel<Tag[]>> {
     const tagsResult = await db.query.tags.findMany({
       columns: {
         userId: false,
       },
       where: and(
         eq(users.userId, this.ctx.userId),
-        tagIds ? inArray(tags.tagId, tagIds) : undefined,
+        tagIds
+          ? inArray(
+              tags.tagId,
+              tagIds.tagIds.map((tag) => tag.tagId),
+            )
+          : undefined,
       ),
     });
 
@@ -45,6 +51,47 @@ export class TagsService {
       status: HttpStatus.OK,
       message: HttpStatusText.OK,
       data: tagsResult,
+    };
+  }
+
+  async create(bodyTags: CreateTagsDto): Promise<ServiceReturnValueModel> {
+    if (!bodyTags.tags.length) {
+      return {
+        status: HttpStatus.BAD_REQUEST,
+        message: HttpStatusText.BAD_REQUEST,
+      };
+    }
+
+    const existingTags = await db.query.tags.findMany({
+      where: and(
+        eq(tags.userId, this.ctx.userId),
+        inArray(
+          tags.name,
+          bodyTags.tags.map((tag) => tag.name),
+        ),
+      ),
+    });
+    if (existingTags.length) {
+      return {
+        status: HttpStatus.CONFLICT,
+        message: HttpStatusText.CONFLICT,
+      };
+    }
+
+    await db
+      .insert(tags)
+      .values(
+        bodyTags.tags.map((tag) => ({
+          userId: this.ctx.userId,
+          name: tag.name,
+          color: tag.color,
+        })),
+      )
+      .onConflictDoNothing();
+
+    return {
+      status: HttpStatus.CREATED,
+      message: HttpStatusText.CREATED,
     };
   }
 
@@ -71,12 +118,16 @@ export class TagsService {
     };
   }
 
-  async delete(tagIds: string[]): Promise<ServiceReturnValueModel> {
-    await db
-      .delete(tags)
-      .where(
-        and(eq(tags.userId, this.ctx.userId), inArray(tags.tagId, tagIds)),
-      );
+  async delete(tagIds: TagIdsDto): Promise<ServiceReturnValueModel> {
+    await db.delete(tags).where(
+      and(
+        eq(tags.userId, this.ctx.userId),
+        inArray(
+          tags.tagId,
+          tagIds.tagIds.map((tag) => tag.tagId),
+        ),
+      ),
+    );
 
     return {
       status: HttpStatus.OK,

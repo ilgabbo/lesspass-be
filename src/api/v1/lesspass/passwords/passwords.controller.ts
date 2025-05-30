@@ -5,10 +5,16 @@ import {
   Get,
   HttpStatus,
   Param,
+  Post,
   Put,
   Query,
 } from '@nestjs/common';
-import { PasswordIdDto, UpdatePasswordDto } from 'shared/dto';
+import {
+  CreatePasswordDto,
+  DeletePasswordsDto,
+  PasswordIdDto,
+  UpdatePasswordDto,
+} from 'shared/dto';
 import { Endpoint } from 'shared/enums';
 import { HttpStatusText } from 'shared/enums';
 import { ResponseModel } from 'shared/models';
@@ -44,6 +50,13 @@ export class PasswordsController {
     }
   }
 
+  @Post()
+  async createPassword(
+    @Body() body: CreatePasswordDto,
+  ): Promise<ResponseModel> {
+    return await this.passwordsService.create(body);
+  }
+
   @Put(':passwordId')
   async updatePassword(
     @Param() params: PasswordIdDto,
@@ -53,11 +66,9 @@ export class PasswordsController {
   }
 
   @Delete('delete')
-  async delete(@Body() body: PasswordIdDto[]): Promise<ResponseModel> {
+  async delete(@Body() body: DeletePasswordsDto): Promise<ResponseModel> {
     try {
-      return await this.passwordsService.delete(
-        body.map((item) => item.passwordId),
-      );
+      return await this.passwordsService.delete(body);
     } catch (error) {
       console.error(error);
       return {

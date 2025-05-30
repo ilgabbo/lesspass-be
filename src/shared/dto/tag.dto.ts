@@ -1,31 +1,50 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsHexColor,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  ValidateNested,
+} from 'class-validator';
 
 export class TagIdDto {
   @IsUUID()
   @IsNotEmpty()
-  @Transform(({ value }) => (value === null ? undefined : value))
   readonly tagId: string;
 }
 
-export class CreateTagDto {
+export class TagDto {
   @IsString()
   @IsNotEmpty()
-  @Transform(({ value }) => (value === null ? undefined : value))
   readonly name: string;
 
   @IsString()
   @IsNotEmpty()
-  @Transform(({ value }) => (value === null ? undefined : value))
+  @IsHexColor()
   readonly color: string;
+}
+
+export class CreateTagsDto {
+  @ValidateNested({ each: true })
+  @IsNotEmpty()
+  @IsArray()
+  @Type(() => TagDto)
+  tags: TagDto[];
+}
+
+export class TagIdsDto {
+  @ValidateNested({ each: true })
+  @IsNotEmpty()
+  @IsArray()
+  @Type(() => TagDto)
+  tagIds: TagIdDto[];
 }
 
 export class UpdateTagDto {
   @IsUUID()
   @IsNotEmpty()
-  @Transform(({ value }) => (value === null ? undefined : value))
   readonly tagId: string;
 
   @IsString()
