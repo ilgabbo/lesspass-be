@@ -6,4 +6,5 @@ export enum Endpoint {
   PASSWORDS = 'passwords',
   TAGS = 'tags',
   FOLDERS = 'folders',
+  USER = 'user',
 }

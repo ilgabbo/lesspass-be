@@ -16,11 +16,6 @@ export class SigninDto {
   @IsNotEmpty()
   @Transform(({ value }) => (value === null ? undefined : value))
   password: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @Transform(({ value }) => (value === null ? undefined : value))
-  key: string;
 }
 
 export class SignupDto {

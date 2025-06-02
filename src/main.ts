@@ -2,14 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Endpoint } from './shared/enums/endpoint.enum';
 import env from 'shared/env';
-import {
-  BadRequestException,
-  HttpStatus,
-  ValidationPipe,
-} from '@nestjs/common';
+import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { ValidationError } from 'class-validator';
 import { E2EInterceptor } from 'interceptor/e2e/e2e.interceptor';
 import { CustomExceptionFilter } from 'filters/exception/exception.filter';
+import { ValidationException } from 'shared/lib/exception/ValidationException/ValidationException';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -27,11 +24,13 @@ async function bootstrap() {
           field: err.property,
           errors: Object.values(err.constraints || {}),
         }));
-        return new BadRequestException({
-          status: HttpStatus.BAD_REQUEST,
-          message: 'Validation failed',
-          data: messages,
-        });
+        return new ValidationException(
+          JSON.stringify({
+            status: HttpStatus.BAD_REQUEST,
+            message: 'Validation failed',
+            data: messages,
+          }),
+        );
       },
     }),
   );

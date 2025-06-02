@@ -27,7 +27,6 @@ export const users = pgTable('users', {
   password: varchar().notNull(),
   role: userRole('role').notNull().default(UserRole.USER),
   passwordChanged: boolean().notNull().default(false),
-  publicKey: varchar().notNull().default(''),
   tokenVersion: uuid(),
 });
 

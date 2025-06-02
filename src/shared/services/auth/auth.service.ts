@@ -24,9 +24,8 @@ export class AuthService {
   async signIn(
     email: string,
     password: string,
-    publicKey: string,
   ): Promise<ServiceReturnValueModel<{ token: string }>> {
-    const user = await this.usersService.findOne(email);
+    const user = await this.usersService.findOne({ email: email });
 
     if (user.status !== HttpStatus.OK) {
       return {
@@ -48,7 +47,6 @@ export class AuthService {
     await db
       .update(users)
       .set({
-        publicKey: publicKey,
         tokenVersion: tokenVersion,
       })
       .where(eq(users.email, email));
@@ -103,7 +101,7 @@ export class AuthService {
       }
     }
 
-    const user = await this.usersService.findOne(body.email);
+    const user = await this.usersService.findOne({ email: body.email });
     if (user.status === HttpStatus.OK) {
       return {
         status: HttpStatus.BAD_REQUEST,

@@ -11,6 +11,7 @@ export const protectedRoutes = [
   `${Endpoint.GLOBAL}/${Endpoint.FOLDERS}`,
   `${Endpoint.GLOBAL}/${Endpoint.PASSWORDS}`,
   `${Endpoint.GLOBAL}/${Endpoint.TAGS}`,
+  `${Endpoint.GLOBAL}/${Endpoint.USER}`,
 ];
 
 export const TOKEN_EXP = '15mins';

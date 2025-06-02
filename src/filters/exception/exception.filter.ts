@@ -4,13 +4,18 @@ import {
   ExceptionFilter,
   HttpStatus,
 } from '@nestjs/common';
-import { JsonWebTokenError } from '@nestjs/jwt';
+import { JsonWebTokenError, TokenExpiredError } from '@nestjs/jwt';
 import { Response } from 'express';
 import { HttpStatusText } from 'shared/enums';
+import { ValidationException } from 'shared/lib/exception/ValidationException/ValidationException';
+import { ResponseModel } from 'shared/models';
 
 @Catch()
 export class CustomExceptionFilter implements ExceptionFilter {
   catch(err: Error, host: ArgumentsHost) {
+    console.log('************************************************************');
+    console.log('*                       ERROR CATCHED                      *');
+    console.log('************************************************************');
     console.error(err);
     const res = host.switchToHttp().getResponse<Response>();
 
@@ -22,10 +27,16 @@ export class CustomExceptionFilter implements ExceptionFilter {
         });
 
       case JsonWebTokenError:
+      case TokenExpiredError:
         return res.status(HttpStatus.UNAUTHORIZED).json({
           status: HttpStatus.UNAUTHORIZED,
           message: HttpStatusText.UNAUTHORIZED,
         });
+
+      case ValidationException: {
+        const error = JSON.parse(err.message) as ResponseModel;
+        return res.status(error.status).json(error);
+      }
 
       default:
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({

@@ -10,11 +10,7 @@ export class AuthController {
 
   @Post(Endpoint.SIGNIN)
   async signin(@Body() body: SigninDto): Promise<ResponseModel> {
-    const result = await this.authService.signIn(
-      body.email,
-      body.password,
-      body.key,
-    );
+    const result = await this.authService.signIn(body.email, body.password);
 
     return result;
   }

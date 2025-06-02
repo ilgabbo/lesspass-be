@@ -9,6 +9,8 @@ import { FoldersService } from 'shared/services/folders/folders.service';
 import { PasswordsService } from 'shared/services/passwords/passwords.service';
 import { FoldersController } from './folders/folders.controller';
 import { RequestContextService } from 'shared/services/request-context/request-context.service';
+import { UserController } from './user/user.controller';
+import { UsersService } from 'shared/services';
 
 @Module({
   imports: [AuthModule],
@@ -18,12 +20,14 @@ import { RequestContextService } from 'shared/services/request-context/request-c
     PasswordsController,
     TagsController,
     FoldersController,
+    UserController,
   ],
   providers: [
     TagsService,
     FoldersService,
     PasswordsService,
     RequestContextService,
+    UsersService,
   ],
 })
 export class LesspassModule {}
